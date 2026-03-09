@@ -19,12 +19,12 @@ import { applyDataDirOverride, type DataDirOptionLike } from "./config/data-dir.
 
 const program = new Command();
 const DATA_DIR_OPTION_HELP =
-  "Paperclip data directory root (isolates state from ~/.paperclip)";
+  "SOC-on-LOC data directory root (isolates state from ~/.paperclip)";
 
 program
-  .name("paperclipai")
-  .description("Paperclip CLI — setup, diagnose, and configure your instance")
-  .version("0.2.7");
+  .name("sentinel")
+  .description("SOC-on-LOC CLI — setup, diagnose, and configure your SOC instance (Breaking Circuits LLC)")
+  .version("0.1.0");
 
 program.hook("preAction", (_thisCommand, actionCommand) => {
   const options = actionCommand.optsWithGlobals() as DataDirOptionLike;

@@ -46,10 +46,10 @@ function ChartLegend({ items }: { items: { color: string; label: string }[] }) {
 
 export function ChartCard({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <div className="border border-border rounded-lg p-4 space-y-3">
+    <div className="border border-border dark:border-border/70 rounded-lg p-4 space-y-3 dark:bg-card/60">
       <div>
-        <h3 className="text-xs font-medium text-muted-foreground">{title}</h3>
-        {subtitle && <span className="text-[10px] text-muted-foreground/60">{subtitle}</span>}
+        <h3 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{title}</h3>
+        {subtitle && <span className="text-[9px] text-muted-foreground/50 font-mono">{subtitle}</span>}
       </div>
       {children}
     </div>
@@ -105,13 +105,14 @@ export function RunActivityChart({ runs }: { runs: HeartbeatRun[] }) {
 }
 
 const priorityColors: Record<string, string> = {
-  critical: "#ef4444",
-  high: "#f97316",
-  medium: "#eab308",
-  low: "#6b7280",
+  critical: "#f43f5e",
+  high: "#fb923c",
+  medium: "#fbbf24",
+  low: "#34d399",
+  info: "#64748b",
 };
 
-const priorityOrder = ["critical", "high", "medium", "low"] as const;
+const priorityOrder = ["critical", "high", "medium", "low", "info"] as const;
 
 export function PriorityChart({ issues }: { issues: { priority: string; createdAt: Date }[] }) {
   const days = getLast14Days();
@@ -158,9 +159,20 @@ export function PriorityChart({ issues }: { issues: { priority: string; createdA
 }
 
 const statusColors: Record<string, string> = {
+  // SOC-on-LOC incident lifecycle colours
+  new: "#64748b",
+  triaging: "#3b82f6",
+  confirmed: "#f97316",
+  investigating: "#a855f7",
+  containing: "#ef4444",
+  remediating: "#fbbf24",
+  resolved: "#10b981",
+  closed: "#374151",
+  false_positive: "#475569",
+  accepted_risk: "#78716c",
+  // legacy fallbacks
   todo: "#3b82f6",
   in_progress: "#8b5cf6",
-  in_review: "#a855f7",
   done: "#10b981",
   blocked: "#ef4444",
   cancelled: "#6b7280",
@@ -168,9 +180,18 @@ const statusColors: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
+  new: "New",
+  triaging: "Triaging",
+  confirmed: "Confirmed",
+  investigating: "Investigating",
+  containing: "Containing",
+  remediating: "Remediating",
+  resolved: "Resolved",
+  closed: "Closed",
+  false_positive: "False Positive",
+  accepted_risk: "Risk Accepted",
   todo: "To Do",
   in_progress: "In Progress",
-  in_review: "In Review",
   done: "Done",
   blocked: "Blocked",
   cancelled: "Cancelled",
@@ -190,7 +211,11 @@ export function IssueStatusChart({ issues }: { issues: { status: string; created
     allStatuses.add(issue.status);
   }
 
-  const statusOrder = ["todo", "in_progress", "in_review", "done", "blocked", "cancelled", "backlog"].filter(s => allStatuses.has(s));
+  const statusOrder = [
+    "new", "triaging", "confirmed", "investigating", "containing", "remediating",
+    "resolved", "closed", "false_positive", "accepted_risk",
+    "todo", "in_progress", "in_review", "done", "blocked", "cancelled", "backlog",
+  ].filter(s => allStatuses.has(s));
   const maxValue = Math.max(...Array.from(grouped.values()).map(v => Object.values(v).reduce((a, b) => a + b, 0)), 1);
   const hasData = allStatuses.size > 0;
 

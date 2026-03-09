@@ -42,76 +42,91 @@
   --radius-xl: 0px;
 }
 
+/* SOC-on-LOC — Light mode (minimal; app defaults to dark) */
 :root {
   color-scheme: light;
   --radius: 0;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: oklch(0.97 0.005 240);
+  --foreground: oklch(0.14 0.02 240);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.14 0.02 240);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.14 0.02 240);
+  --primary: oklch(0.52 0.18 210);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.94 0.01 240);
+  --secondary-foreground: oklch(0.14 0.02 240);
+  --muted: oklch(0.94 0.01 240);
+  --muted-foreground: oklch(0.48 0.03 240);
+  --accent: oklch(0.94 0.01 240);
+  --accent-foreground: oklch(0.14 0.02 240);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.88 0.01 240);
+  --input: oklch(0.88 0.01 240);
+  --ring: oklch(0.52 0.18 210);
+  --chart-1: oklch(0.52 0.18 210);
+  --chart-2: oklch(0.62 0.23 25);
+  --chart-3: oklch(0.75 0.17 80);
+  --chart-4: oklch(0.65 0.18 300);
+  --chart-5: oklch(0.60 0.18 150);
+  --sidebar: oklch(0.97 0.005 240);
+  --sidebar-foreground: oklch(0.14 0.02 240);
+  --sidebar-primary: oklch(0.52 0.18 210);
+  --sidebar-primary-foreground: oklch(0.98 0 0);
+  --sidebar-accent: oklch(0.94 0.01 240);
+  --sidebar-accent-foreground: oklch(0.14 0.02 240);
+  --sidebar-border: oklch(0.88 0.01 240);
+  --sidebar-ring: oklch(0.52 0.18 210);
 }
 
+/* SOC-on-LOC — Dark mode: deep navy cybersecurity aesthetic */
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.637 0.237 25.331);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.145 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  color-scheme: dark;
+  /* Core palette */
+  --background: oklch(0.09 0.015 243);
+  --foreground: oklch(0.90 0.012 210);
+  --card: oklch(0.12 0.018 243);
+  --card-foreground: oklch(0.90 0.012 210);
+  --popover: oklch(0.13 0.020 243);
+  --popover-foreground: oklch(0.90 0.012 210);
+  /* Cyan primary — the SOC accent */
+  --primary: oklch(0.73 0.16 198);
+  --primary-foreground: oklch(0.09 0.015 243);
+  --secondary: oklch(0.16 0.022 243);
+  --secondary-foreground: oklch(0.90 0.012 210);
+  --muted: oklch(0.16 0.022 243);
+  --muted-foreground: oklch(0.55 0.04 225);
+  --accent: oklch(0.16 0.022 243);
+  --accent-foreground: oklch(0.90 0.012 210);
+  --destructive: oklch(0.62 0.23 25);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.21 0.028 243);
+  --input: oklch(0.16 0.022 243);
+  --ring: oklch(0.73 0.16 198);
+  /* Chart colours: cyan, red-alert, amber, purple-intel, green-resolved */
+  --chart-1: oklch(0.73 0.16 198);
+  --chart-2: oklch(0.62 0.23 25);
+  --chart-3: oklch(0.76 0.17 78);
+  --chart-4: oklch(0.66 0.19 302);
+  --chart-5: oklch(0.65 0.18 155);
+  /* Sidebar — slightly darker than card */
+  --sidebar: oklch(0.08 0.013 243);
+  --sidebar-foreground: oklch(0.90 0.012 210);
+  --sidebar-primary: oklch(0.73 0.16 198);
+  --sidebar-primary-foreground: oklch(0.09 0.015 243);
+  --sidebar-accent: oklch(0.14 0.020 243);
+  --sidebar-accent-foreground: oklch(0.90 0.012 210);
+  --sidebar-border: oklch(0.18 0.024 243);
+  --sidebar-ring: oklch(0.73 0.16 198);
+  /* SOC-specific semantic colours */
+  --soc-critical: oklch(0.62 0.23 25);
+  --soc-high: oklch(0.70 0.18 50);
+  --soc-medium: oklch(0.76 0.17 78);
+  --soc-low: oklch(0.65 0.18 155);
+  --soc-info: oklch(0.55 0.06 225);
+  --soc-cyber: oklch(0.73 0.16 198);
+  --soc-intel: oklch(0.66 0.19 302);
 }
 
 @layer base {
@@ -192,6 +207,99 @@
 /* Expandable dialog transition for max-width changes */
 [data-slot="dialog-content"] {
   transition: max-width 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── SOC-on-LOC Cyber Animations ─────────────────────────────── */
+
+/* Breathing cyan glow — active defenders, live feeds */
+@keyframes pulse-beacon {
+  0%, 100% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--soc-cyber, #00d4ff) 0%, transparent);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 12px 3px color-mix(in oklab, var(--soc-cyber, #00d4ff) 30%, transparent);
+    opacity: 0.85;
+  }
+}
+
+/* Blinking status dot */
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  45% { opacity: 1; }
+  55% { opacity: 0.15; }
+}
+
+/* Threat level banner scan shimmer */
+@keyframes scan-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* Subtle data-row flicker (terminal feel) */
+@keyframes row-flicker {
+  0%, 100% { opacity: 1; }
+  96% { opacity: 1; }
+  97% { opacity: 0.88; }
+  98% { opacity: 1; }
+}
+
+/* Kill chain bar fill */
+@keyframes bar-fill {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Metric value count-up feel */
+@keyframes value-pop {
+  0%   { transform: scale(0.92); opacity: 0; }
+  60%  { transform: scale(1.04); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* SOC utility classes */
+.beacon-pulse { animation: pulse-beacon 2.8s ease-in-out infinite; }
+.blink-dot    { animation: blink-dot 1.6s step-start infinite; }
+.row-flicker  { animation: row-flicker 8s linear infinite; }
+.value-pop    { animation: value-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+.scan-shimmer {
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    color-mix(in oklab, white 8%, transparent) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: scan-shimmer 3.5s linear infinite;
+}
+
+/* Kill chain progress bars */
+.kill-chain-bar {
+  transform-origin: left;
+  animation: bar-fill 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Card glow variants — applied via inline style or data attrs */
+.card-glow-critical {
+  box-shadow: 0 0 0 1px color-mix(in oklab, oklch(0.62 0.23 25) 35%, transparent),
+              0 0 20px color-mix(in oklab, oklch(0.62 0.23 25) 12%, transparent);
+}
+.card-glow-high {
+  box-shadow: 0 0 0 1px color-mix(in oklab, oklch(0.70 0.18 50) 30%, transparent),
+              0 0 20px color-mix(in oklab, oklch(0.70 0.18 50) 10%, transparent);
+}
+.card-glow-cyber {
+  box-shadow: 0 0 0 1px color-mix(in oklab, oklch(0.73 0.16 198) 30%, transparent),
+              0 0 20px color-mix(in oklab, oklch(0.73 0.16 198) 10%, transparent);
+}
+.card-glow-intel {
+  box-shadow: 0 0 0 1px color-mix(in oklab, oklch(0.66 0.19 302) 30%, transparent),
+              0 0 20px color-mix(in oklab, oklch(0.66 0.19 302) 10%, transparent);
+}
+.card-glow-success {
+  box-shadow: 0 0 0 1px color-mix(in oklab, oklch(0.65 0.18 155) 30%, transparent),
+              0 0 20px color-mix(in oklab, oklch(0.65 0.18 155) 10%, transparent);
 }
 
 /* Dashboard activity row entry motion */

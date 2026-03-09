@@ -41,6 +41,14 @@ import {
   Hexagon,
   Pentagon,
   Fingerprint,
+  // SOC-on-LOC additions
+  Wifi,
+  Server,
+  AlertTriangle,
+  Activity,
+  Crosshair,
+  Key,
+  Network,
   type LucideIcon,
 } from "lucide-react";
 import { AGENT_ICON_NAMES, type AgentIconName } from "@paperclipai/shared";
@@ -94,6 +102,14 @@ export const AGENT_ICONS: Record<AgentIconName, LucideIcon> = {
   hexagon: Hexagon,
   pentagon: Pentagon,
   fingerprint: Fingerprint,
+  // SOC-on-LOC additions
+  wifi: Wifi,
+  server: Server,
+  "alert-triangle": AlertTriangle,
+  activity: Activity,
+  crosshair: Crosshair,
+  key: Key,
+  network: Network,
 };
 
 const DEFAULT_ICON: AgentIconName = "bot";

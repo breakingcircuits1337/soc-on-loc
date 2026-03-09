@@ -1,3 +1,6 @@
+// SOC-on-LOC — Incidents / Findings (extended from paperclip issues)
+// Breaking Circuits LLC — breakingcircuits.com
+
 import {
   type AnyPgColumn,
   pgTable,
@@ -5,6 +8,7 @@ import {
   text,
   timestamp,
   integer,
+  real,
   jsonb,
   index,
   uniqueIndex,
@@ -46,6 +50,51 @@ export const issues = pgTable(
     hiddenAt: timestamp("hidden_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+
+    // --- SOC-on-LOC Cyber Defense Extensions ---
+
+    // Finding metadata
+    findingType: text("finding_type"),                // FINDING_TYPES constant
+    sourceAlertId: text("source_alert_id"),           // External SIEM/EDR alert ID
+
+    // CVE / Vulnerability fields
+    cveId: text("cve_id"),                            // CVE-YYYY-NNNNN
+    cvssScore: real("cvss_score"),                    // 0.0 – 10.0
+    cvssVector: text("cvss_vector"),                  // CVSS vector string
+
+    // MITRE ATT&CK
+    mitreTactic: text("mitre_tactic"),                // MITRE_TACTICS constant (TA0001...)
+    mitreTechnique: text("mitre_technique"),          // T1234 or T1234.001
+    killChainStage: text("kill_chain_stage"),         // KILL_CHAIN_STAGES constant
+
+    // Asset and IOC linkage (denormalized for query performance)
+    affectedAssetIds: jsonb("affected_asset_ids").$type<string[]>().default([]),
+    iocIds: jsonb("ioc_ids").$type<string[]>().default([]),
+
+    // SLA and timing metrics
+    slaDeadlineAt: timestamp("sla_deadline_at", { withTimezone: true }),
+    mttdSeconds: integer("mttd_seconds"),              // Mean time to detect
+    mttrSeconds: integer("mttr_seconds"),              // Mean time to respond/remediate
+
+    // Containment actions taken
+    containmentActions: jsonb("containment_actions").$type<
+      Array<{
+        actionType: string;   // CONTAINMENT_ACTION_TYPES constant
+        performedAt: string;  // ISO timestamp
+        performedBy: string;  // agent ID or user ID
+        details: string;
+      }>
+    >().default([]),
+
+    // Evidence artifacts
+    evidence: jsonb("evidence").$type<
+      Array<{
+        type: string;         // log, screenshot, pcap, memory_dump, file
+        label: string;
+        reference: string;    // file path, URL, or asset ID
+        collectedAt: string;
+      }>
+    >().default([]),
   },
   (table) => ({
     companyStatusIdx: index("issues_company_status_idx").on(table.companyId, table.status),

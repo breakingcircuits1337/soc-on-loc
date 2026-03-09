@@ -31,3 +31,7 @@ export { approvalComments } from "./approval_comments.js";
 export { activityLog } from "./activity_log.js";
 export { companySecrets } from "./company_secrets.js";
 export { companySecretVersions } from "./company_secret_versions.js";
+// SOC-on-LOC cyber defense tables
+export { networkAssets } from "./network_assets.js";
+export { iocs } from "./iocs.js";
+export { threatFeeds } from "./threat_feeds.js";

@@ -1,280 +1,271 @@
-<p align="center">
-  <img src="doc/assets/header.png" alt="Paperclip — runs your business" width="720" />
-</p>
+# SOC-on-LOC
 
-<p align="center">
-  <a href="#quickstart"><strong>Quickstart</strong></a> &middot;
-  <a href="https://paperclip.ing/docs"><strong>Docs</strong></a> &middot;
-  <a href="https://github.com/paperclipai/paperclip"><strong>GitHub</strong></a> &middot;
-  <a href="https://discord.gg/m4HZY7xNG3"><strong>Discord</strong></a>
-</p>
+**AI-Native Security Operations Orchestration — Local, Autonomous, Defender-Led**
 
-<p align="center">
-  <a href="https://github.com/paperclipai/paperclip/blob/master/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License" /></a>
-  <a href="https://github.com/paperclipai/paperclip/stargazers"><img src="https://img.shields.io/github/stars/paperclipai/paperclip?style=flat" alt="Stars" /></a>
-  <a href="https://discord.gg/m4HZY7xNG3"><img src="https://img.shields.io/discord/000000000?label=discord" alt="Discord" /></a>
-</p>
+> Built by [Breaking Circuits LLC](https://breakingcircuits.com) &nbsp;|&nbsp; Forked from [paperclipai/paperclip](https://github.com/paperclipai/paperclip)
 
-<br/>
+---
 
-<div align="center">
-  <video src="https://github.com/user-attachments/assets/773bdfb2-6d1e-4e30-8c5f-3487d5b70c8f" width="600" controls></video>
-</div>
+## What is SOC-on-LOC?
 
-<br/>
+SOC-on-LOC is an open-source AI agent orchestration platform purpose-built for **cybersecurity operations**. Where Paperclip runs AI companies, SOC-on-LOC runs AI Security Operations Centers — fully local, fully autonomous, fully under your control.
 
-## What is Paperclip?
+Spin up a team of AI defenders. Assign roles. Set mission objectives. Watch your SOC operate 24/7 with no human babysitting required.
 
-# Open-source orchestration for zero-human companies
+**If OpenClaw is an _analyst_, SOC-on-LOC is the _SOC_.**
 
-**If OpenClaw is an _employee_, Paperclip is the _company_**
+|        | Step                     | Example                                                                       |
+| ------ | ------------------------ | ----------------------------------------------------------------------------- |
+| **01** | Define the mission       | _"Detect, contain, and remediate all critical incidents within a 4-hour SLA."_ |
+| **02** | Build your defender team | CISO, Incident Commander, SOC Analysts, Threat Hunters, Red Teamers — any AI. |
+| **03** | Approve and activate     | Set budgets. Review strategy. Hit go. Monitor from the SOC dashboard.         |
 
-Paperclip is a Node.js server and React UI that orchestrates a team of AI agents to run a business. Bring your own agents, assign goals, and track your agents' work and costs from one dashboard.
+---
 
-It looks like a task manager — but under the hood it has org charts, budgets, governance, goal alignment, and agent coordination.
+## SOC-on-LOC is right for you if
 
-**Manage business goals, not pull requests.**
+- ✅ You want a **fully autonomous SOC** that operates 24/7 without manual intervention
+- ✅ You need to **coordinate many different AI defenders** (OpenClaw, Claude, Codex, custom agents) toward a common security mission
+- ✅ You want **full incident lifecycle management** — from raw alert to closed ticket — handled by AI
+- ✅ You need **authorization gates** before countermeasures deploy (you're the board, not the bottleneck)
+- ✅ You want every decision **permanently logged** with MITRE ATT&CK and Kill Chain context
+- ✅ You want to **monitor costs** and enforce token budgets per defender
+- ✅ You want to manage your SOC **from your phone**
 
-|        | Step            | Example                                                            |
-| ------ | --------------- | ------------------------------------------------------------------ |
-| **01** | Define the goal | _"Build the #1 AI note-taking app to $1M MRR."_                    |
-| **02** | Hire the team   | CEO, CTO, engineers, designers, marketers — any bot, any provider. |
-| **03** | Approve and run | Review strategy. Set budgets. Hit go. Monitor from the dashboard.  |
-
-<br/>
-
-> **COMING SOON: Clipmart** — Download and run entire companies with one click. Browse pre-built company templates — full org structures, agent configs, and skills — and import them into your Paperclip instance in seconds.
-
-<br/>
-
-<div align="center">
-<table>
-  <tr>
-    <td align="center"><strong>Works<br/>with</strong></td>
-    <td align="center"><img src="doc/assets/logos/openclaw.svg" width="32" alt="OpenClaw" /><br/><sub>OpenClaw</sub></td>
-    <td align="center"><img src="doc/assets/logos/claude.svg" width="32" alt="Claude" /><br/><sub>Claude Code</sub></td>
-    <td align="center"><img src="doc/assets/logos/codex.svg" width="32" alt="Codex" /><br/><sub>Codex</sub></td>
-    <td align="center"><img src="doc/assets/logos/cursor.svg" width="32" alt="Cursor" /><br/><sub>Cursor</sub></td>
-    <td align="center"><img src="doc/assets/logos/bash.svg" width="32" alt="Bash" /><br/><sub>Bash</sub></td>
-    <td align="center"><img src="doc/assets/logos/http.svg" width="32" alt="HTTP" /><br/><sub>HTTP</sub></td>
-  </tr>
-</table>
-
-<em>If it can receive a heartbeat, it's hired.</em>
-
-</div>
-
-<br/>
-
-## Paperclip is right for you if
-
-- ✅ You want to build **autonomous AI companies**
-- ✅ You **coordinate many different agents** (OpenClaw, Codex, Claude, Cursor) toward a common goal
-- ✅ You have **20 simultaneous Claude Code terminals** open and lose track of what everyone is doing
-- ✅ You want agents running **autonomously 24/7**, but still want to audit work and chime in when needed
-- ✅ You want to **monitor costs** and enforce budgets
-- ✅ You want a process for managing agents that **feels like using a task manager**
-- ✅ You want to manage your autonomous businesses **from your phone**
-
-<br/>
+---
 
 ## Features
 
 <table>
 <tr>
 <td align="center" width="33%">
-<h3>🔌 Bring Your Own Agent</h3>
-Any agent, any runtime, one org chart. If it can receive a heartbeat, it's hired.
+<h3>🛡️ Bring Your Own Defender</h3>
+Any AI, any runtime. OpenClaw, Claude Code, custom scripts, SIEM webhooks. If it can receive a watch cycle, it's hired.
 </td>
 <td align="center" width="33%">
-<h3>🎯 Goal Alignment</h3>
-Every task traces back to the company mission. Agents know <em>what</em> to do and <em>why</em>.
+<h3>🚨 Incident Lifecycle</h3>
+Full IR workflow from raw alert to closure. CVSS severity, kill chain tagging, MITRE ATT&CK, evidence and containment tracking.
 </td>
 <td align="center" width="33%">
-<h3>💓 Heartbeats</h3>
-Agents wake on a schedule, check work, and act. Delegation flows up and down the org chart.
+<h3>🎯 Mission Alignment</h3>
+Every incident traces back to the SOC mission. Defenders always know <em>what</em> to defend and <em>why</em>.
 </td>
 </tr>
 <tr>
+<td align="center">
+<h3>🔁 Watch Cycles</h3>
+Defenders wake on schedule or on assignment, triage alerts, escalate, contain, and report back. Heartbeats with live streaming output.
+</td>
+<td align="center">
+<h3>🔐 Authorization Gates</h3>
+You are the board. Approve defender hires, countermeasure deployments, risk acceptances, and CISO strategy — at any time.
+</td>
 <td align="center">
 <h3>💰 Cost Control</h3>
-Monthly budgets per agent. When they hit the limit, they stop. No runaway costs.
-</td>
-<td align="center">
-<h3>🏢 Multi-Company</h3>
-One deployment, many companies. Complete data isolation. One control plane for your portfolio.
-</td>
-<td align="center">
-<h3>🎫 Ticket System</h3>
-Every conversation traced. Every decision explained. Full tool-call tracing and immutable audit log.
+Monthly token budget per defender. When they hit the limit, they stand down. No runaway spend.
 </td>
 </tr>
 <tr>
 <td align="center">
-<h3>🛡️ Governance</h3>
-You're the board. Approve hires, override strategy, pause or terminate any agent — at any time.
+<h3>🧠 MITRE ATT&CK</h3>
+Incidents mapped to Kill Chain stage and ATT&CK tactic codes. CVSS scoring built into the severity model.
 </td>
 <td align="center">
-<h3>📊 Org Chart</h3>
-Hierarchies, roles, reporting lines. Your agents have a boss, a title, and a job description.
+<h3>📋 Immutable Audit Log</h3>
+Every decision, every tool call, every escalation — permanently recorded. Full compliance trail.
 </td>
 <td align="center">
-<h3>📱 Mobile Ready</h3>
-Monitor and manage your autonomous businesses from anywhere.
+<h3>🏢 Multi-SOC Portfolio</h3>
+One deployment, many SOCs. Complete data isolation. One control plane for your entire security operation.
 </td>
 </tr>
 </table>
 
-<br/>
+---
 
-## Problems Paperclip solves
+## SOC-on-LOC vs. Paperclip
 
-| Without Paperclip                                                                                                                     | With Paperclip                                                                                                                         |
-| ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| ❌ You have 20 Claude Code tabs open and can't track which one does what. On reboot you lose everything.                              | ✅ Tasks are ticket-based, conversations are threaded, sessions persist across reboots.                                                |
-| ❌ You manually gather context from several places to remind your bot what you're actually doing.                                     | ✅ Context flows from the task up through the project and company goals — your agent always knows what to do and why.                  |
-| ❌ Folders of agent configs are disorganized and you're re-inventing task management, communication, and coordination between agents. | ✅ Paperclip gives you org charts, ticketing, delegation, and governance out of the box — so you run a company, not a pile of scripts. |
-| ❌ Runaway loops waste hundreds of dollars of tokens and max your quota before you even know what happened.                           | ✅ Cost tracking surfaces token budgets and throttles agents when they're out. Management prioritizes with budgets.                    |
-| ❌ You have recurring jobs (customer support, social, reports) and have to remember to manually kick them off.                        | ✅ Heartbeats handle regular work on a schedule. Management supervises.                                                                |
-| ❌ You have an idea, you have to find your repo, fire up Claude Code, keep a tab open, and babysit it.                                | ✅ Add a task in Paperclip. Your coding agent works on it until it's done. Management reviews their work.                              |
+| Paperclip Concept   | SOC-on-LOC Equivalent   | Notes                                                |
+| ------------------- | ----------------------- | ---------------------------------------------------- |
+| Company             | SOC / Defender Team     | One SOC per deployment or multi-SOC portfolio        |
+| Agent               | Defender                | Roles: CISO, Analyst, Threat Hunter, Red Teamer...   |
+| Issue / Ticket      | Incident / Finding      | Full incident lifecycle with CVSS severity           |
+| Heartbeat           | Watch Cycle             | Defenders wake, triage alerts, act, report           |
+| Goal                | Mission Objective       | Traced from SOC mission → team → defender → task     |
+| Project             | Operation / Campaign    | Grouped IR or hunt operations                        |
+| Approval            | Authorization Gate      | Deploy countermeasures, accept risk, hire defenders  |
+| Budget              | Token / Cost Envelope   | Per-defender monthly spend cap                       |
 
-<br/>
+---
 
-## Why Paperclip is special
+## Defender Roles
 
-Paperclip handles the hard orchestration details correctly.
+| Role                   | Responsibility                                                |
+| ---------------------- | ------------------------------------------------------------- |
+| `ciso`                 | Strategic direction, risk posture, board reporting            |
+| `incident_commander`   | Leads active IR — coordinates containment and remediation     |
+| `red_teamer`           | Adversarial simulation, penetration testing, purple team      |
+| `vulnerability_analyst`| CVE triage, CVSS scoring, patch prioritization                |
+| `blue_teamer`          | Active defense, SIEM rule tuning, detection engineering       |
+| `threat_hunter`        | Proactive hypothesis-driven hunting for hidden threats        |
+| `soc_analyst`          | Tier 1/2/3 alert triage, investigation, escalation            |
+| `network_defender`     | NSM, firewall management, IDS/IPS tuning                      |
+| `endpoint_defender`    | EDR management, host-based detection and response             |
+| `intel_analyst`        | Threat intelligence, IOC tracking, OSINT, dark web            |
+| `malware_analyst`      | Reverse engineering, sandbox analysis, YARA rule development  |
+| `forensics_analyst`    | Digital forensics, chain of custody, evidence collection      |
+| `compliance_officer`   | NIST / ISO 27001 / FISMA / CIS framework mapping              |
 
-|                                   |                                                                                                               |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Atomic execution.**             | Task checkout and budget enforcement are atomic, so no double-work and no runaway spend.                      |
-| **Persistent agent state.**       | Agents resume the same task context across heartbeats instead of restarting from scratch.                     |
-| **Runtime skill injection.**      | Agents can learn Paperclip workflows and project context at runtime, without retraining.                      |
-| **Governance with rollback.**     | Approval gates are enforced, config changes are revisioned, and bad changes can be rolled back safely.        |
-| **Goal-aware execution.**         | Tasks carry full goal ancestry so agents consistently see the "why," not just a title.                        |
-| **Portable company templates.**   | Export/import orgs, agents, and skills with secret scrubbing and collision handling.                          |
-| **True multi-company isolation.** | Every entity is company-scoped, so one deployment can run many companies with separate data and audit trails. |
+---
 
-<br/>
+## Incident Lifecycle
 
-## What Paperclip is not
+```
+new → triaging → confirmed → investigating → containing → remediating → resolved → closed
+                                                                       → false_positive
+                                                                       → accepted_risk
+```
 
-|                              |                                                                                                                      |
-| ---------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| **Not a chatbot.**           | Agents have jobs, not chat windows.                                                                                  |
-| **Not an agent framework.**  | We don't tell you how to build agents. We tell you how to run a company made of them.                                |
-| **Not a workflow builder.**  | No drag-and-drop pipelines. Paperclip models companies — with org charts, goals, budgets, and governance.            |
-| **Not a prompt manager.**    | Agents bring their own prompts, models, and runtimes. Paperclip manages the organization they work in.               |
-| **Not a single-agent tool.** | This is for teams. If you have one agent, you probably don't need Paperclip. If you have twenty — you definitely do. |
-| **Not a code review tool.**  | Paperclip orchestrates work, not pull requests. Bring your own review process.                                       |
+**Severity (CVSS-aligned)**:
+- `critical` — P0: active breach, ransomware, data exfil in progress (CVSS 9.0–10.0)
+- `high`     — P1: confirmed threat, immediate response required (CVSS 7.0–8.9)
+- `medium`   — P2: suspicious activity, investigation needed (CVSS 4.0–6.9)
+- `low`      — P3: low-confidence signal (CVSS 0.1–3.9)
+- `info`     — Telemetry / audit only
 
-<br/>
+---
+
+## Intelligence Framework
+
+**Kill Chain Stages** (Lockheed Martin):
+`reconnaissance` → `weaponization` → `delivery` → `exploitation` → `installation` → `c2` → `exfiltration`
+
+**MITRE ATT&CK Tactics**: TA0001 through TA0043 (14 tactic codes tracked per incident)
+
+**IOC Types**: IP, CIDR, domain, URL, MD5/SHA1/SHA256, email, file path, registry key, user agent, TLS cert, mutex
+
+**Compliance Frameworks**: NIST CSF, NIST 800-53, ISO 27001, FISMA, CIS v8, SOC 2, PCI DSS, HIPAA, CMMC
+
+---
+
+## Adapter Types
+
+| Adapter          | Description                                                  |
+| ---------------- | ------------------------------------------------------------ |
+| `openclaw`       | OpenClaw continuous agent — SSE + webhook transport          |
+| `http`           | Generic HTTP — any REST-callable agent                       |
+| `claude_local`   | Claude Code local process                                    |
+| `opencode_local` | OpenCode local process                                       |
+| `siem`           | SIEM webhook receiver (Splunk, Elastic, Sentinel)            |
+| `threat_feed`    | CVE/NVD/MISP/OTX/STIX feed poller                           |
+| `scanner`        | nmap / nuclei / OpenVAS process wrapper                      |
+| `edr`            | EDR alert webhook (CrowdStrike, SentinelOne, etc.)           |
+| `process`        | Raw subprocess / shell adapter                               |
+
+---
 
 ## Quickstart
 
-Open source. Self-hosted. No Paperclip account required.
+Open source. Self-hosted. No account required.
 
 ```bash
-npx paperclipai onboard --yes
-```
-
-Or manually:
-
-```bash
-git clone https://github.com/paperclipai/paperclip.git
-cd paperclip
+git clone https://github.com/breakingcircuits1337/soc-on-loc.git
+cd soc-on-loc
 pnpm install
 pnpm dev
 ```
 
-This starts the API server at `http://localhost:3100`. An embedded PostgreSQL database is created automatically — no setup required.
+API server starts at `http://localhost:3100`. Embedded PostgreSQL is created automatically — no setup required.
 
 > **Requirements:** Node.js 20+, pnpm 9.15+
 
-<br/>
+### First-time setup
 
-## FAQ
+```bash
+pnpm sentinel onboard --yes    # Non-interactive quickstart
+# or
+pnpm sentinel onboard          # Interactive setup
+```
 
-**What does a typical setup look like?**
-Locally, a single Node.js process manages an embedded Postgres and local file storage. For production, point it at your own Postgres and deploy however you like. Configure projects, agents, and goals — the agents take care of the rest.
-
-If you're a solo-entreprenuer you can use Tailscale to access Paperclip on the go. Then later you can deploy to e.g. Vercel when you need it.
-
-**Can I run multiple companies?**
-Yes. A single deployment can run an unlimited number of companies with complete data isolation.
-
-**How is Paperclip different from agents like OpenClaw or Claude Code?**
-Paperclip _uses_ those agents. It orchestrates them into a company — with org charts, budgets, goals, governance, and accountability.
-
-**Why should I use Paperclip instead of just pointing my OpenClaw to Asana or Trello?**
-Agent orchestration has subtleties in how you coordinate who has work checked out, how to maintain sessions, monitoring costs, establishing governance - Paperclip does this for you.
-
-(Bring-your-own-ticket-system is on the Roadmap)
-
-**Do agents run continuously?**
-By default, agents run on scheduled heartbeats and event-based triggers (task assignment, @-mentions). You can also hook in continuous agents like OpenClaw. You bring your agent and Paperclip coordinates.
-
-<br/>
+---
 
 ## Development
 
 ```bash
-pnpm dev              # Full dev (API + UI)
+pnpm dev              # Full dev (API + UI with hot reload)
 pnpm dev:server       # Server only
-pnpm build            # Build all
-pnpm typecheck        # Type checking
+pnpm build            # Build all packages
+pnpm typecheck        # Type check all packages
 pnpm test:run         # Run tests
-pnpm db:generate      # Generate DB migration
-pnpm db:migrate       # Apply migrations
+pnpm db:generate      # Generate DB migration after schema change
+pnpm db:migrate       # Apply pending migrations
+pnpm db:backup        # Manual database backup
 ```
-
-See [doc/DEVELOPING.md](doc/DEVELOPING.md) for the full development guide.
-
-<br/>
-
-## Roadmap
-
-- ⚪ Get OpenClaw onboarding easier
-- ⚪ Get cloud agents working e.g. Cursor / e2b agents
-- ⚪ ClipMart - buy and sell entire agent companies
-- ⚪ Easy agent configurations / easier to understand
-- ⚪ Better support for harness engineering
-- ⚪ Plugin system (e.g. if you want to add a knowledgebase, custom tracing, queues, etc)
-- ⚪ Better docs
-
-<br/>
-
-## Contributing
-
-We welcome contributions. See the [contributing guide](CONTRIBUTING.md) for details.
-
-<!-- TODO: add CONTRIBUTING.md -->
-
-<br/>
-
-## Community
-
-- [Discord](https://discord.gg/m4HZY7xNG3) — Join the community
-- [GitHub Issues](https://github.com/paperclipai/paperclip/issues) — bugs and feature requests
-- [GitHub Discussions](https://github.com/paperclipai/paperclip/discussions) — ideas and RFC
-
-<br/>
-
-## License
-
-MIT &copy; 2026 Paperclip
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/image?repos=paperclipai/paperclip&type=date&legend=top-left)](https://www.star-history.com/?repos=paperclipai%2Fpaperclip&type=date&legend=top-left)
-
-<br/>
 
 ---
 
-<p align="center">
-  <img src="doc/assets/footer.jpg" alt="" width="720" />
-</p>
+## Architecture
 
-<p align="center">
-  <sub>Open source under MIT. Built for people who want to run companies, not babysit agents.</sub>
-</p>
+SOC-on-LOC is a Node.js + React monorepo built on the Paperclip orchestration engine, with a full cyber defense domain layer on top.
+
+```
+packages/
+  shared/        — Domain constants, types, validators (cyber defense semantics)
+  db/            — Drizzle ORM + PGlite embedded PostgreSQL
+                   Extended schema: assets, iocs, threat_feeds
+  adapters/      — Adapter implementations (openclaw, http, siem, scanner, edr...)
+  adapter-utils/ — Shared adapter primitives
+server/          — Express API server
+ui/              — React + Vite SOC dashboard
+cli/             — sentinel CLI (onboard, doctor, run, heartbeat)
+```
+
+### Schema Extensions
+
+Cyber-specific tables beyond the Paperclip base:
+- `assets` — Network asset / host inventory
+- `iocs` — Indicators of Compromise
+- `threat_feeds` — External intel source registry
+
+The `issues` table is extended with:
+`cvss_score`, `cve_id`, `mitre_tactic`, `mitre_technique`, `kill_chain_stage`,
+`affected_asset_ids`, `ioc_ids`, `source_alert_id`, `mttd_seconds`, `mttr_seconds`,
+`sla_deadline_at`, `evidence`, `containment_actions`
+
+---
+
+## Roadmap
+
+- [ ] SIEM webhook adapter (Elastic / Splunk / Sentinel ingest)
+- [ ] Threat feed poller (NVD / MISP / OTX / STIX-TAXII)
+- [ ] Network scanner adapter (nmap / nuclei)
+- [ ] EDR alert webhook adapter (CrowdStrike, SentinelOne)
+- [ ] Automated countermeasure playbooks
+- [ ] MITRE ATT&CK Navigator integration
+- [ ] SOC metrics dashboard (MTTD, MTTR, SLA tracking)
+- [ ] Multi-SOC portfolio view
+- [ ] Export incident reports (STIX 2.1, PDF)
+
+---
+
+## Contributing
+
+We welcome contributions. See [AGENTS.md](AGENTS.md) for the development guide, domain vocabulary, and coding conventions.
+
+---
+
+## Credits
+
+SOC-on-LOC is built and maintained by **[Breaking Circuits LLC](https://breakingcircuits.com)**.
+
+Forked from [paperclipai/paperclip](https://github.com/paperclipai/paperclip) — MIT License.
+
+---
+
+## License
+
+MIT &copy; 2026 Breaking Circuits LLC
+
+---
+
+*Built for defenders who want to run a SOC, not babysit a script.*

@@ -39,6 +39,11 @@ import { listCodexModels } from "./codex-models.js";
 import { listCursorModels } from "./cursor-models.js";
 import { processAdapter } from "./process/index.js";
 import { httpAdapter } from "./http/index.js";
+// SOC-on-LOC cyber defense adapters
+import { siemAdapter } from "./siem/index.js";
+import { threatFeedAdapter } from "./threat-feed/index.js";
+import { scannerAdapter } from "./scanner/index.js";
+import { edrAdapter } from "./edr/index.js";
 
 const claudeLocalAdapter: ServerAdapterModule = {
   type: "claude_local",
@@ -94,7 +99,12 @@ const openCodeLocalAdapter: ServerAdapterModule = {
 };
 
 const adaptersByType = new Map<string, ServerAdapterModule>(
-  [claudeLocalAdapter, codexLocalAdapter, openCodeLocalAdapter, cursorLocalAdapter, openclawAdapter, processAdapter, httpAdapter].map((a) => [a.type, a]),
+  [
+    claudeLocalAdapter, codexLocalAdapter, openCodeLocalAdapter,
+    cursorLocalAdapter, openclawAdapter, processAdapter, httpAdapter,
+    // SOC-on-LOC cyber defense adapters
+    siemAdapter, threatFeedAdapter, scannerAdapter, edrAdapter,
+  ].map((a) => [a.type, a]),
 );
 
 export function getServerAdapter(type: string): ServerAdapterModule {

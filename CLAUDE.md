@@ -303,6 +303,76 @@ Triggered on PRs to `master` and pushes to `master`. Concurrent runs are cancell
 
 ---
 
+## Automation Pipeline (2026 — Autonomous SOC)
+
+SOC-on-LOC is designed to run fully autonomously. The automation pipeline converts raw adapter outputs into actionable incidents without human intervention.
+
+### How it works
+
+Every time a cyber-defense adapter run **succeeds**, the heartbeat service fires `dispatchAdapterResult()` from `server/src/services/automation-dispatcher.ts`. This dispatcher:
+
+| Adapter | Action |
+|---------|--------|
+| `siem` | Creates an `issue` (incident) for every critical/high alert (deduped by `sourceAlertId`) |
+| `edr` | Creates an `issue` for every critical/high detection (deduped by `sourceAlertId`), populates `mitreTactic`/`mitreTechnique` |
+| `threat_feed` | Upserts all IOCs into the `iocs` table; creates a vulnerability `issue` for each critical/high CVE (deduped by `cveId`) |
+| `scanner` | Creates per-finding issues from structured nuclei output, or a summary issue from counts |
+
+### Auto-assignment
+
+The dispatcher queries active agents and assigns incidents to the most appropriate role:
+
+| Incident type | Preferred role |
+|---------------|----------------|
+| SIEM alert | `soc_analyst` |
+| EDR detection | `endpoint_defender` |
+| CVE / scanner finding | `vulnerability_analyst` |
+
+Falls back to `incident_commander` → any available agent when preferred role is unavailable.
+
+### SLA deadlines (auto-set)
+
+| Priority | SLA |
+|----------|-----|
+| `critical` | 4 hours |
+| `high` | 24 hours |
+| `medium` | 7 days |
+
+### Deduplication
+
+Issues are deduplicated so the same external alert never creates two incidents:
+- SIEM/EDR/scanner: unique on `(companyId, sourceAlertId)`
+- CVEs: unique on `(companyId, cveId)`
+- IOCs: unique on `(companyId, iocType, value)` — re-seen IOCs just update `lastSeenAt`
+
+### Scheduling heartbeats for full autonomy
+
+To make agents poll continuously, set `heartbeat.enabled = true` and `heartbeat.intervalSec` in the agent's `runtimeConfig`:
+
+```jsonc
+{
+  "heartbeat": {
+    "enabled": true,
+    "intervalSec": 300   // poll every 5 minutes
+  }
+}
+```
+
+The server scheduler (`server/src/index.ts`) ticks every `heartbeatSchedulerIntervalMs` (default 10 s), enqueues runs automatically, and the dispatcher turns findings into incidents — no human needed.
+
+### Key files
+
+| File | Purpose |
+|------|---------|
+| `server/src/services/automation-dispatcher.ts` | Post-run incident/IOC creation |
+| `server/src/services/heartbeat.ts` | Scheduler + hook into dispatcher |
+| `server/src/adapters/siem/execute.ts` | SIEM poller (includes `alerts[]` in resultJson) |
+| `server/src/adapters/edr/execute.ts` | EDR poller (includes `detections[]` in resultJson) |
+| `server/src/adapters/threat-feed/execute.ts` | Threat intel (includes `items[]` in resultJson) |
+| `server/src/adapters/scanner/execute.ts` | nmap/nuclei scanner |
+
+---
+
 ## Skills
 
 Reusable Claude skill definitions are in `skills/`. Each skill has a `SKILL.md` with purpose, API references, and example invocations. Existing skills:

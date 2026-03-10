@@ -23,6 +23,7 @@ import { createLocalAgentJwt } from "../agent-auth-jwt.js";
 import { parseObject, asBoolean, asNumber, appendWithCap, MAX_EXCERPT_BYTES } from "../adapters/utils.js";
 import { secretService } from "./secrets.js";
 import { resolveDefaultAgentWorkspaceDir } from "../home-paths.js";
+import { dispatchAdapterResult } from "./automation-dispatcher.js";
 
 const MAX_LIVE_LOG_CHUNK_BYTES = 8 * 1024;
 const HEARTBEAT_MAX_CONCURRENT_RUNS_DEFAULT = 1;
@@ -1393,6 +1394,18 @@ export function heartbeatService(db: Db) {
         }
       }
       await finalizeAgentStatus(agent.id, outcome);
+
+      // Automation: on successful cyber-defense adapter runs, create incidents and ingest IOCs
+      if (outcome === "succeeded" && adapterResult.resultJson) {
+        void dispatchAdapterResult({
+          db,
+          companyId: agent.companyId,
+          agentId: agent.id,
+          runId: run.id,
+          adapterType: agent.adapterType ?? "",
+          resultJson: adapterResult.resultJson,
+        });
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown adapter failure";
       logger.error({ err, runId }, "heartbeat execution failed");

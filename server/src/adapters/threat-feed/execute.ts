@@ -167,6 +167,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     signal: null,
     timedOut: false,
     summary,
-    resultJson: { feedType, totalItems: items.length, cveCount, iocCount },
+    // Include capped items array so automation-dispatcher can ingest IOCs and create CVE incidents
+    resultJson: { feedType, totalItems: items.length, cveCount, iocCount, items: items.slice(0, 200) },
   };
 }

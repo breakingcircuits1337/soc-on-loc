@@ -13,12 +13,24 @@
 //
 // Breaking Circuits LLC — breakingcircuits.com
 
-import { and, eq, max } from "drizzle-orm";
+import { and, eq, max, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { agents, issues, iocs } from "@paperclipai/db";
 import { logger } from "../middleware/logger.js";
 
 const CYBER_ADAPTER_TYPES = new Set(["siem", "edr", "threat_feed", "scanner"]);
+
+// --- SLA constants ----------------------------------------------------------
+
+const CRITICAL_SLA_HOURS = 4;
+const HIGH_SLA_HOURS     = 24;
+const MEDIUM_SLA_DAYS    = 7;
+
+// --- Per-run caps (mirrors the caps in the adapter resultJson) ---------------
+
+const MAX_ALERTS_PER_RUN   = 20;   // SIEM alerts or EDR detections per run
+const MAX_CVE_ISSUES_PER_RUN = 10; // CVE vulnerability issues per threat feed run
+const MAX_FINDINGS_PER_RUN = 10;   // Nuclei findings per scanner run
 
 // --- Priority mapping -------------------------------------------------------
 
@@ -69,13 +81,35 @@ async function findAssignee(
   return fallback?.id ?? null;
 }
 
-/** Return the next sequential issue number for the company. */
-async function nextIssueNumber(db: Db, companyId: string): Promise<number> {
-  const [row] = await db
-    .select({ maxNum: max(issues.issueNumber) })
-    .from(issues)
-    .where(eq(issues.companyId, companyId));
-  return ((row?.maxNum as number | null) ?? 0) + 1;
+/**
+ * Atomically assign the next issue number and insert the issue in a single
+ * transaction. A per-company advisory lock (pg_advisory_xact_lock) prevents
+ * concurrent runs from fetching the same max(issueNumber), which would cause a
+ * unique-constraint violation on the `identifier` column.
+ */
+async function insertIssueAtomic(
+  db: Db,
+  values: Omit<typeof issues.$inferInsert, "issueNumber" | "identifier">,
+): Promise<{ id: string } | null> {
+  return db.transaction(async (tx) => {
+    // hashtext() converts the UUID string to a 32-bit int — enough for per-company
+    // serialization without risking collisions between different companies.
+    await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${values.companyId}))`);
+
+    const [row] = await tx
+      .select({ maxNum: max(issues.issueNumber) })
+      .from(issues)
+      .where(eq(issues.companyId, values.companyId!));
+
+    const num = ((row?.maxNum as number | null) ?? 0) + 1;
+
+    const [inserted] = await tx
+      .insert(issues)
+      .values({ ...values, issueNumber: num, identifier: `SOC-${num}` })
+      .returning({ id: issues.id });
+
+    return inserted ?? null;
+  });
 }
 
 /** Return a Date N hours from now. */
@@ -88,12 +122,12 @@ function daysFromNow(days: number): Date {
   return new Date(Date.now() + days * 86_400_000);
 }
 
-/** SLA deadline for a given priority. */
+/** SLA deadline for a given priority, using the named SLA constants. */
 function slaDeadline(priority: string): Date | null {
   switch (priority) {
-    case "critical": return hoursFromNow(4);
-    case "high":     return hoursFromNow(24);
-    case "medium":   return daysFromNow(7);
+    case "critical": return hoursFromNow(CRITICAL_SLA_HOURS);
+    case "high":     return hoursFromNow(HIGH_SLA_HOURS);
+    case "medium":   return daysFromNow(MEDIUM_SLA_DAYS);
     default:         return null;
   }
 }
@@ -116,7 +150,7 @@ async function processSiem(ctx: DispatchContext): Promise<void> {
 
   const assigneeId = await findAssignee(db, companyId, "soc_analyst");
 
-  for (const alert of criticalAlerts.slice(0, 20)) {
+  for (const alert of criticalAlerts.slice(0, MAX_ALERTS_PER_RUN)) {
     const sourceAlertId = String(alert.id ?? "");
     if (!sourceAlertId) continue;
 
@@ -128,10 +162,9 @@ async function processSiem(ctx: DispatchContext): Promise<void> {
       .then(rows => rows[0] ?? null);
     if (existing) continue;
 
-    const num = await nextIssueNumber(db, companyId);
     const priority = normalizePriority(alert.severity);
 
-    const [inserted] = await db.insert(issues).values({
+    const inserted = await insertIssueAtomic(db, {
       companyId,
       title: String(alert.title ?? `SIEM Alert ${sourceAlertId}`),
       description:
@@ -146,10 +179,8 @@ async function processSiem(ctx: DispatchContext): Promise<void> {
       sourceAlertId,
       assigneeAgentId: assigneeId,
       createdByAgentId: agentId,
-      issueNumber: num,
-      identifier: `SOC-${num}`,
       slaDeadlineAt: slaDeadline(priority),
-    }).returning({ id: issues.id });
+    });
 
     logger.info({ companyId, sourceAlertId, priority }, "automation-dispatcher: created incident from SIEM alert");
 
@@ -181,7 +212,7 @@ async function processEdr(ctx: DispatchContext): Promise<void> {
   const platform = String(resultJson.platform ?? "edr");
   const assigneeId = await findAssignee(db, companyId, "endpoint_defender");
 
-  for (const det of critical.slice(0, 20)) {
+  for (const det of critical.slice(0, MAX_ALERTS_PER_RUN)) {
     const sourceAlertId = String(det.id ?? "");
     if (!sourceAlertId) continue;
 
@@ -192,13 +223,12 @@ async function processEdr(ctx: DispatchContext): Promise<void> {
       .then(rows => rows[0] ?? null);
     if (existing) continue;
 
-    const num = await nextIssueNumber(db, companyId);
     const priority = normalizePriority(det.severity);
     const hostname = det.hostname ? `\`${det.hostname}\`` : "unknown";
     const tacticLine = det.tactic ? `\n- MITRE Tactic: ${det.tactic}` : "";
     const techLine = det.technique ? `\n- MITRE Technique: ${det.technique}` : "";
 
-    const [inserted] = await db.insert(issues).values({
+    const inserted = await insertIssueAtomic(db, {
       companyId,
       title: String(det.title ?? `EDR Detection ${sourceAlertId}`),
       description:
@@ -217,10 +247,8 @@ async function processEdr(ctx: DispatchContext): Promise<void> {
       mitreTechnique: det.technique ?? null,
       assigneeAgentId: assigneeId,
       createdByAgentId: agentId,
-      issueNumber: num,
-      identifier: `SOC-${num}`,
       slaDeadlineAt: slaDeadline(priority),
-    }).returning({ id: issues.id });
+    });
 
     logger.info({ companyId, sourceAlertId, platform, priority }, "automation-dispatcher: created incident from EDR detection");
 
@@ -251,7 +279,7 @@ async function processThreatFeed(ctx: DispatchContext): Promise<void> {
   // --- 1. Upsert IOCs (non-CVE items) --------------------------------------
   const iocItems = (rawItems as IntelItem[]).filter(i => i.type !== "cve" && i.value);
 
-  for (const item of iocItems.slice(0, 200)) {
+  for (const item of iocItems) {
     try {
       await db
         .insert(iocs)
@@ -288,7 +316,7 @@ async function processThreatFeed(ctx: DispatchContext): Promise<void> {
 
   const assigneeId = await findAssignee(db, companyId, "vulnerability_analyst");
 
-  for (const cve of cveItems.slice(0, 10)) {
+  for (const cve of cveItems.slice(0, MAX_CVE_ISSUES_PER_RUN)) {
     const cveId = cve.value || cve.id;
     if (!cveId) continue;
 
@@ -299,9 +327,11 @@ async function processThreatFeed(ctx: DispatchContext): Promise<void> {
       .then(rows => rows[0] ?? null);
     if (existing) continue;
 
-    const num = await nextIssueNumber(db, companyId);
+    // Use the actual CVE severity to drive both priority and SLA deadline,
+    // rather than hardcoding "high" + 7 days regardless of severity.
+    const priority = normalizePriority(cve.severity ?? "high");
 
-    const [inserted] = await db.insert(issues).values({
+    const inserted = await insertIssueAtomic(db, {
       companyId,
       title: `Vulnerability: ${cveId}`,
       description:
@@ -312,17 +342,15 @@ async function processThreatFeed(ctx: DispatchContext): Promise<void> {
         `- Published: ${cve.publishedAt ?? now.toISOString()}\n\n` +
         `*Run: ${runId}*`,
       status: "backlog",
-      priority: "high",
+      priority,
       findingType: "vulnerability",
       cveId,
       assigneeAgentId: assigneeId,
       createdByAgentId: agentId,
-      issueNumber: num,
-      identifier: `SOC-${num}`,
-      slaDeadlineAt: daysFromNow(7),
-    }).returning({ id: issues.id });
+      slaDeadlineAt: slaDeadline(priority),
+    });
 
-    logger.info({ companyId, cveId, feedType }, "automation-dispatcher: created vulnerability issue from threat feed");
+    logger.info({ companyId, cveId, feedType, priority }, "automation-dispatcher: created vulnerability issue from threat feed");
 
     if (inserted?.id && assigneeId) {
       await wakeupAgent?.(assigneeId, inserted.id);
@@ -355,7 +383,7 @@ async function processScanner(ctx: DispatchContext): Promise<void> {
   if (criticalFindings.length > 0) {
     const assigneeId = await findAssignee(db, companyId, "vulnerability_analyst");
 
-    for (const finding of criticalFindings.slice(0, 10)) {
+    for (const finding of criticalFindings.slice(0, MAX_FINDINGS_PER_RUN)) {
       const sourceAlertId = String(finding.id ?? finding.templateId ?? "");
       if (!sourceAlertId) continue;
 
@@ -366,10 +394,9 @@ async function processScanner(ctx: DispatchContext): Promise<void> {
         .then(rows => rows[0] ?? null);
       if (existing) continue;
 
-      const num = await nextIssueNumber(db, companyId);
       const priority = normalizePriority(finding.severity ?? "high");
 
-      const [inserted] = await db.insert(issues).values({
+      const inserted = await insertIssueAtomic(db, {
         companyId,
         title: String(finding.name ?? finding.title ?? `Scanner finding: ${sourceAlertId}`),
         description:
@@ -384,12 +411,10 @@ async function processScanner(ctx: DispatchContext): Promise<void> {
         sourceAlertId,
         assigneeAgentId: assigneeId,
         createdByAgentId: agentId,
-        issueNumber: num,
-        identifier: `SOC-${num}`,
-        slaDeadlineAt: daysFromNow(7),
-      }).returning({ id: issues.id });
+        slaDeadlineAt: slaDeadline(priority),
+      });
 
-      logger.info({ companyId, sourceAlertId, tool }, "automation-dispatcher: created issue from scanner finding");
+      logger.info({ companyId, sourceAlertId, tool, priority }, "automation-dispatcher: created issue from scanner finding");
 
       if (inserted?.id && assigneeId) {
         await wakeupAgent?.(assigneeId, inserted.id);
@@ -402,9 +427,9 @@ async function processScanner(ctx: DispatchContext): Promise<void> {
   if (criticalCount === 0) return;
 
   const assigneeId = await findAssignee(db, companyId, "vulnerability_analyst");
-  const num = await nextIssueNumber(db, companyId);
+  const priority = "high";
 
-  const [inserted] = await db.insert(issues).values({
+  const inserted = await insertIssueAtomic(db, {
     companyId,
     title: `Scanner Alert: ${criticalCount} critical/high finding(s) [${tool}] against ${targets}`,
     description:
@@ -414,14 +439,12 @@ async function processScanner(ctx: DispatchContext): Promise<void> {
       `- Critical/High Findings: ${criticalCount}\n\n` +
       `*Run: ${runId}*`,
     status: "backlog",
-    priority: "high",
+    priority,
     findingType: "vulnerability",
     assigneeAgentId: assigneeId,
     createdByAgentId: agentId,
-    issueNumber: num,
-    identifier: `SOC-${num}`,
-    slaDeadlineAt: daysFromNow(7),
-  }).returning({ id: issues.id });
+    slaDeadlineAt: slaDeadline(priority),
+  });
 
   logger.info({ companyId, tool, criticalCount }, "automation-dispatcher: created summary issue from scanner run");
 

@@ -8,6 +8,9 @@
 //   threat_feed → upsert IOCs; create vulnerability issue per critical/high CVE
 //   scanner    → create issue per critical/high nuclei finding, or a summary issue
 //
+// After creating each issue, the assigned agent is woken up immediately via the
+// wakeupAgent callback (injected from heartbeat.ts to avoid a circular import).
+//
 // Breaking Circuits LLC — breakingcircuits.com
 
 import { and, eq, max } from "drizzle-orm";
@@ -75,12 +78,12 @@ async function nextIssueNumber(db: Db, companyId: string): Promise<number> {
   return ((row?.maxNum as number | null) ?? 0) + 1;
 }
 
-/** Return ISO timestamp N hours from now. */
+/** Return a Date N hours from now. */
 function hoursFromNow(hours: number): Date {
   return new Date(Date.now() + hours * 3_600_000);
 }
 
-/** Return ISO timestamp N days from now. */
+/** Return a Date N days from now. */
 function daysFromNow(days: number): Date {
   return new Date(Date.now() + days * 86_400_000);
 }
@@ -104,13 +107,9 @@ interface SiemAlert {
   timestamp: string;
 }
 
-async function processSiem(
-  db: Db,
-  companyId: string,
-  agentId: string,
-  runId: string,
-  resultJson: Record<string, unknown>,
-): Promise<void> {
+async function processSiem(ctx: DispatchContext): Promise<void> {
+  const { db, companyId, agentId, runId, resultJson, wakeupAgent } = ctx;
+
   const rawAlerts = Array.isArray(resultJson.alerts) ? resultJson.alerts : [];
   const criticalAlerts = (rawAlerts as SiemAlert[]).filter(a => isCriticalOrHigh(a.severity));
   if (criticalAlerts.length === 0) return;
@@ -132,7 +131,7 @@ async function processSiem(
     const num = await nextIssueNumber(db, companyId);
     const priority = normalizePriority(alert.severity);
 
-    await db.insert(issues).values({
+    const [inserted] = await db.insert(issues).values({
       companyId,
       title: String(alert.title ?? `SIEM Alert ${sourceAlertId}`),
       description:
@@ -150,9 +149,13 @@ async function processSiem(
       issueNumber: num,
       identifier: `SOC-${num}`,
       slaDeadlineAt: slaDeadline(priority),
-    });
+    }).returning({ id: issues.id });
 
     logger.info({ companyId, sourceAlertId, priority }, "automation-dispatcher: created incident from SIEM alert");
+
+    if (inserted?.id && assigneeId) {
+      await wakeupAgent?.(assigneeId, inserted.id);
+    }
   }
 }
 
@@ -168,13 +171,9 @@ interface EdrDetection {
   timestamp: string;
 }
 
-async function processEdr(
-  db: Db,
-  companyId: string,
-  agentId: string,
-  runId: string,
-  resultJson: Record<string, unknown>,
-): Promise<void> {
+async function processEdr(ctx: DispatchContext): Promise<void> {
+  const { db, companyId, agentId, runId, resultJson, wakeupAgent } = ctx;
+
   const rawDetections = Array.isArray(resultJson.detections) ? resultJson.detections : [];
   const critical = (rawDetections as EdrDetection[]).filter(d => isCriticalOrHigh(d.severity));
   if (critical.length === 0) return;
@@ -199,7 +198,7 @@ async function processEdr(
     const tacticLine = det.tactic ? `\n- MITRE Tactic: ${det.tactic}` : "";
     const techLine = det.technique ? `\n- MITRE Technique: ${det.technique}` : "";
 
-    await db.insert(issues).values({
+    const [inserted] = await db.insert(issues).values({
       companyId,
       title: String(det.title ?? `EDR Detection ${sourceAlertId}`),
       description:
@@ -221,9 +220,13 @@ async function processEdr(
       issueNumber: num,
       identifier: `SOC-${num}`,
       slaDeadlineAt: slaDeadline(priority),
-    });
+    }).returning({ id: issues.id });
 
     logger.info({ companyId, sourceAlertId, platform, priority }, "automation-dispatcher: created incident from EDR detection");
+
+    if (inserted?.id && assigneeId) {
+      await wakeupAgent?.(assigneeId, inserted.id);
+    }
   }
 }
 
@@ -238,13 +241,9 @@ interface IntelItem {
   publishedAt?: string;
 }
 
-async function processThreatFeed(
-  db: Db,
-  companyId: string,
-  agentId: string,
-  runId: string,
-  resultJson: Record<string, unknown>,
-): Promise<void> {
+async function processThreatFeed(ctx: DispatchContext): Promise<void> {
+  const { db, companyId, agentId, runId, resultJson, wakeupAgent } = ctx;
+
   const rawItems = Array.isArray(resultJson.items) ? resultJson.items : [];
   const feedType = String(resultJson.feedType ?? "custom");
   const now = new Date();
@@ -302,7 +301,7 @@ async function processThreatFeed(
 
     const num = await nextIssueNumber(db, companyId);
 
-    await db.insert(issues).values({
+    const [inserted] = await db.insert(issues).values({
       companyId,
       title: `Vulnerability: ${cveId}`,
       description:
@@ -321,9 +320,13 @@ async function processThreatFeed(
       issueNumber: num,
       identifier: `SOC-${num}`,
       slaDeadlineAt: daysFromNow(7),
-    });
+    }).returning({ id: issues.id });
 
     logger.info({ companyId, cveId, feedType }, "automation-dispatcher: created vulnerability issue from threat feed");
+
+    if (inserted?.id && assigneeId) {
+      await wakeupAgent?.(assigneeId, inserted.id);
+    }
   }
 }
 
@@ -338,13 +341,9 @@ interface NucleiFinding {
   host?: string;
 }
 
-async function processScanner(
-  db: Db,
-  companyId: string,
-  agentId: string,
-  runId: string,
-  resultJson: Record<string, unknown>,
-): Promise<void> {
+async function processScanner(ctx: DispatchContext): Promise<void> {
+  const { db, companyId, agentId, runId, resultJson, wakeupAgent } = ctx;
+
   const tool = String(resultJson.tool ?? "scanner");
   const targets = Array.isArray(resultJson.targets) ? (resultJson.targets as string[]).join(", ") : "unknown";
   const criticalCount = Number(resultJson.criticalCount ?? resultJson.findingCount ?? 0);
@@ -370,7 +369,7 @@ async function processScanner(
       const num = await nextIssueNumber(db, companyId);
       const priority = normalizePriority(finding.severity ?? "high");
 
-      await db.insert(issues).values({
+      const [inserted] = await db.insert(issues).values({
         companyId,
         title: String(finding.name ?? finding.title ?? `Scanner finding: ${sourceAlertId}`),
         description:
@@ -388,9 +387,13 @@ async function processScanner(
         issueNumber: num,
         identifier: `SOC-${num}`,
         slaDeadlineAt: daysFromNow(7),
-      });
+      }).returning({ id: issues.id });
 
       logger.info({ companyId, sourceAlertId, tool }, "automation-dispatcher: created issue from scanner finding");
+
+      if (inserted?.id && assigneeId) {
+        await wakeupAgent?.(assigneeId, inserted.id);
+      }
     }
     return;
   }
@@ -401,7 +404,7 @@ async function processScanner(
   const assigneeId = await findAssignee(db, companyId, "vulnerability_analyst");
   const num = await nextIssueNumber(db, companyId);
 
-  await db.insert(issues).values({
+  const [inserted] = await db.insert(issues).values({
     companyId,
     title: `Scanner Alert: ${criticalCount} critical/high finding(s) [${tool}] against ${targets}`,
     description:
@@ -418,9 +421,13 @@ async function processScanner(
     issueNumber: num,
     identifier: `SOC-${num}`,
     slaDeadlineAt: daysFromNow(7),
-  });
+  }).returning({ id: issues.id });
 
   logger.info({ companyId, tool, criticalCount }, "automation-dispatcher: created summary issue from scanner run");
+
+  if (inserted?.id && assigneeId) {
+    await wakeupAgent?.(assigneeId, inserted.id);
+  }
 }
 
 // --- Public API -------------------------------------------------------------
@@ -432,6 +439,11 @@ export interface DispatchContext {
   runId: string;
   adapterType: string;
   resultJson: Record<string, unknown>;
+  /**
+   * Called after each new incident is created so the assigned agent is woken
+   * up immediately. Injected from heartbeat.ts to avoid a circular import.
+   */
+  wakeupAgent?: (assigneeId: string, issueId: string) => Promise<void>;
 }
 
 /**
@@ -441,25 +453,15 @@ export interface DispatchContext {
 export async function dispatchAdapterResult(ctx: DispatchContext): Promise<void> {
   if (!CYBER_ADAPTER_TYPES.has(ctx.adapterType)) return;
 
-  const { db, companyId, agentId, runId, adapterType, resultJson } = ctx;
-
   try {
-    switch (adapterType) {
-      case "siem":
-        await processSiem(db, companyId, agentId, runId, resultJson);
-        break;
-      case "edr":
-        await processEdr(db, companyId, agentId, runId, resultJson);
-        break;
-      case "threat_feed":
-        await processThreatFeed(db, companyId, agentId, runId, resultJson);
-        break;
-      case "scanner":
-        await processScanner(db, companyId, agentId, runId, resultJson);
-        break;
+    switch (ctx.adapterType) {
+      case "siem":        await processSiem(ctx);        break;
+      case "edr":         await processEdr(ctx);         break;
+      case "threat_feed": await processThreatFeed(ctx);  break;
+      case "scanner":     await processScanner(ctx);     break;
     }
   } catch (err) {
     // Dispatcher failures must never break the heartbeat run lifecycle
-    logger.error({ err, companyId, agentId, runId, adapterType }, "automation-dispatcher: unhandled error");
+    logger.error({ err, companyId: ctx.companyId, agentId: ctx.agentId, runId: ctx.runId, adapterType: ctx.adapterType }, "automation-dispatcher: unhandled error");
   }
 }

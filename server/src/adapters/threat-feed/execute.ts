@@ -17,6 +17,56 @@ interface IntelItem {
   publishedAt?: string;
 }
 
+// ---- NVD CVSS severity extraction -----------------------------------------
+
+interface NvdCvssMetric {
+  cvssData?: { baseScore?: number; baseSeverity?: string };
+}
+interface NvdMetrics {
+  cvssMetricV40?: NvdCvssMetric[];
+  cvssMetricV31?: NvdCvssMetric[];
+  cvssMetricV30?: NvdCvssMetric[];
+  cvssMetricV2?: Array<{ baseSeverity?: string }>;
+}
+
+function extractNvdSeverity(metrics: NvdMetrics | undefined): string {
+  if (!metrics) return "unknown";
+  // Prefer newest CVSS version for accuracy
+  const v4  = metrics.cvssMetricV40?.[0]?.cvssData?.baseSeverity;
+  if (v4)  return v4.toLowerCase();
+  const v31 = metrics.cvssMetricV31?.[0]?.cvssData?.baseSeverity;
+  if (v31) return v31.toLowerCase();
+  const v30 = metrics.cvssMetricV30?.[0]?.cvssData?.baseSeverity;
+  if (v30) return v30.toLowerCase();
+  const v2  = metrics.cvssMetricV2?.[0]?.baseSeverity;
+  if (v2)  return v2.toLowerCase();
+  return "unknown";
+}
+
+// ---- OTX IOC type normalization -------------------------------------------
+// OTX uses its own type names; map them to our IOC_TYPES constants.
+
+const OTX_TYPE_MAP: Record<string, string> = {
+  "IPv4":            "ip",
+  "IPv6":            "ip",
+  "CIDR":            "cidr",
+  "domain":          "domain",
+  "hostname":        "domain",
+  "URL":             "url",
+  "URI":             "url",
+  "email":           "email",
+  "FileHash-MD5":    "hash_md5",
+  "FileHash-SHA1":   "hash_sha1",
+  "FileHash-SHA256": "hash_sha256",
+  "filepath":        "file_path",
+  "Mutex":           "mutex",
+  "CVE":             "cve",
+};
+
+function normalizeOtxType(otxType: string): string {
+  return OTX_TYPE_MAP[otxType] ?? "unknown";
+}
+
 // ---- NVD CVE feed (NIST) ----
 async function fetchNvd(apiKey: string, lookbackDays: number, timeoutMs: number): Promise<IntelItem[]> {
   const since = new Date(Date.now() - lookbackDays * 86400000).toISOString();
@@ -28,14 +78,18 @@ async function fetchNvd(apiKey: string, lookbackDays: number, timeoutMs: number)
     if (apiKey) headers["apiKey"] = apiKey;
     const res = await fetch(url, { headers, signal: controller.signal });
     if (!res.ok) throw new Error(`NVD returned HTTP ${res.status}`);
-    const data = await res.json() as { vulnerabilities?: Array<{ cve: { id: string; metrics?: Record<string, unknown>; descriptions?: Array<{ lang: string; value: string }> } }> };
+    const data = await res.json() as {
+      vulnerabilities?: Array<{
+        cve: { id: string; metrics?: NvdMetrics; published?: string };
+      }>;
+    };
     return (data.vulnerabilities ?? []).map(v => ({
       id: v.cve.id,
       type: "cve",
       value: v.cve.id,
-      severity: "unknown",
+      severity: extractNvdSeverity(v.cve.metrics),
       source: "nvd",
-      publishedAt: since,
+      publishedAt: v.cve.published ?? since,
     }));
   } finally {
     clearTimeout(timer);
@@ -57,7 +111,9 @@ async function fetchOtx(apiKey: string, lookbackDays: number, timeoutMs: number)
     const items: IntelItem[] = [];
     for (const pulse of data.results ?? []) {
       for (const ind of pulse.indicators ?? []) {
-        items.push({ id: `otx-${ind.indicator}`, type: ind.type, value: ind.indicator, source: "otx" });
+        const normalizedType = normalizeOtxType(ind.type);
+        if (normalizedType === "unknown") continue; // skip unmappable types
+        items.push({ id: `otx-${ind.indicator}`, type: normalizedType, value: ind.indicator, source: "otx" });
       }
     }
     return items.slice(0, 200);

@@ -1395,15 +1395,25 @@ export function heartbeatService(db: Db) {
       }
       await finalizeAgentStatus(agent.id, outcome);
 
-      // Automation: on successful cyber-defense adapter runs, create incidents and ingest IOCs
+      // Automation: on successful cyber-defense adapter runs, create incidents and ingest IOCs,
+      // then immediately wake the assigned agent so it starts working without waiting for the
+      // next scheduler tick.
       if (outcome === "succeeded" && adapterResult.resultJson) {
-        void dispatchAdapterResult({
+        await dispatchAdapterResult({
           db,
           companyId: agent.companyId,
           agentId: agent.id,
           runId: run.id,
           adapterType: agent.adapterType ?? "",
           resultJson: adapterResult.resultJson,
+          wakeupAgent: async (assigneeId, issueId) => {
+            await enqueueWakeup(assigneeId, {
+              source: "automation",
+              reason: "incident_auto_created",
+              payload: { issueId },
+              requestedByActorType: "system",
+            });
+          },
         });
       }
     } catch (err) {

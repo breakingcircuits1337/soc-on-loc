@@ -188,6 +188,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     signal: null,
     timedOut: false,
     summary,
-    resultJson: { platform, detectionCount: detections.length, criticalCount },
+    // Include capped detections array so automation-dispatcher can create per-detection incidents
+    resultJson: { platform, detectionCount: detections.length, criticalCount, detections: detections.slice(0, 50) },
   };
 }

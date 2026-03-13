@@ -1,5 +1,9 @@
 # SOC-on-LOC
 
+<p align="center">
+  <img src="assets/soc-hero.png" alt="SOC-on-LOC — AI-Native Security Operations" width="100%" />
+</p>
+
 **AI-Native Security Operations Orchestration — Local, Autonomous, Defender-Led**
 
 > Built by [Breaking Circuits LLC](https://breakingcircuits.com) &nbsp;|&nbsp; Forked from [paperclipai/paperclip](https://github.com/paperclipai/paperclip)

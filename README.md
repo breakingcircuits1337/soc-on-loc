@@ -14,11 +14,11 @@ Spin up a team of AI defenders. Assign roles. Set mission objectives. Watch your
 
 **If OpenClaw is an _analyst_, SOC-on-LOC is the _SOC_.**
 
-|        | Step                     | Example                                                                       |
-| ------ | ------------------------ | ----------------------------------------------------------------------------- |
+|        | Step                     | Example                                                                        |
+| ------ | ------------------------ | ------------------------------------------------------------------------------ |
 | **01** | Define the mission       | _"Detect, contain, and remediate all critical incidents within a 4-hour SLA."_ |
-| **02** | Build your defender team | CISO, Incident Commander, SOC Analysts, Threat Hunters, Red Teamers — any AI. |
-| **03** | Approve and activate     | Set budgets. Review strategy. Hit go. Monitor from the SOC dashboard.         |
+| **02** | Build your defender team | CISO, Incident Commander, SOC Analysts, Threat Hunters, Red Teamers — any AI.  |
+| **03** | Approve and activate     | Set budgets. Review strategy. Hit go. Monitor from the SOC dashboard.          |
 
 ---
 
@@ -47,8 +47,8 @@ Any AI, any runtime. OpenClaw, Claude Code, custom scripts, SIEM webhooks. If it
 Full IR workflow from raw alert to closure. CVSS severity, kill chain tagging, MITRE ATT&CK, evidence and containment tracking.
 </td>
 <td align="center" width="33%">
-<h3>🎯 Mission Alignment</h3>
-Every incident traces back to the SOC mission. Defenders always know <em>what</em> to defend and <em>why</em>.
+<h3>⚡ Autonomous Pipeline</h3>
+SIEM alerts, EDR detections, CVEs, and scanner findings automatically become incidents with SLA deadlines and assigned defenders — no human in the loop.
 </td>
 </tr>
 <tr>
@@ -83,18 +83,27 @@ One deployment, many SOCs. Complete data isolation. One control plane for your e
 
 ---
 
-## SOC-on-LOC vs. Paperclip
+## Autonomous Pipeline
 
-| Paperclip Concept   | SOC-on-LOC Equivalent   | Notes                                                |
-| ------------------- | ----------------------- | ---------------------------------------------------- |
-| Company             | SOC / Defender Team     | One SOC per deployment or multi-SOC portfolio        |
-| Agent               | Defender                | Roles: CISO, Analyst, Threat Hunter, Red Teamer...   |
-| Issue / Ticket      | Incident / Finding      | Full incident lifecycle with CVSS severity           |
-| Heartbeat           | Watch Cycle             | Defenders wake, triage alerts, act, report           |
-| Goal                | Mission Objective       | Traced from SOC mission → team → defender → task     |
-| Project             | Operation / Campaign    | Grouped IR or hunt operations                        |
-| Approval            | Authorization Gate      | Deploy countermeasures, accept risk, hire defenders  |
-| Budget              | Token / Cost Envelope   | Per-defender monthly spend cap                       |
+The core loop that makes SOC-on-LOC hands-free:
+
+```
+Scheduler tick
+  → Defender heartbeat run (SIEM / EDR / threat feed / scanner)
+  → Automation dispatcher processes resultJson
+  → Incidents created (deduped · SLA set · defender assigned)
+  → Assigned defender woken immediately
+  → Defender investigates and acts
+```
+
+| Adapter        | What it does automatically                                                    |
+| -------------- | ----------------------------------------------------------------------------- |
+| `siem`         | Creates an incident for every critical/high alert (deduped by source alert ID) |
+| `edr`          | Creates an incident per detection with MITRE tactic/technique populated        |
+| `threat_feed`  | Upserts IOCs into the threat intel database; opens a ticket per critical CVE   |
+| `scanner`      | Creates per-finding issues from nuclei output, or a summary issue from counts  |
+
+SLA deadlines are auto-set: **critical → 4 h · high → 24 h · medium → 7 days**
 
 ---
 
@@ -152,14 +161,14 @@ new → triaging → confirmed → investigating → containing → remediating 
 
 | Adapter          | Description                                                  |
 | ---------------- | ------------------------------------------------------------ |
+| `siem`           | SIEM poller — Splunk, Elastic, Sentinel, QRadar, generic REST |
+| `edr`            | EDR poller — CrowdStrike, SentinelOne, Defender, Carbon Black |
+| `threat_feed`    | Threat intel — NVD, MISP, OTX, STIX-TAXII, VirusTotal, Shodan |
+| `scanner`        | Network/vuln scanner — nmap, nuclei, OpenVAS                 |
 | `openclaw`       | OpenClaw continuous agent — SSE + webhook transport          |
-| `http`           | Generic HTTP — any REST-callable agent                       |
 | `claude_local`   | Claude Code local process                                    |
 | `opencode_local` | OpenCode local process                                       |
-| `siem`           | SIEM webhook receiver (Splunk, Elastic, Sentinel)            |
-| `threat_feed`    | CVE/NVD/MISP/OTX/STIX feed poller                           |
-| `scanner`        | nmap / nuclei / OpenVAS process wrapper                      |
-| `edr`            | EDR alert webhook (CrowdStrike, SentinelOne, etc.)           |
+| `http`           | Generic HTTP — any REST-callable agent                       |
 | `process`        | Raw subprocess / shell adapter                               |
 
 ---
@@ -211,38 +220,43 @@ SOC-on-LOC is a Node.js + React monorepo built on the Paperclip orchestration en
 ```
 packages/
   shared/        — Domain constants, types, validators (cyber defense semantics)
-  db/            — Drizzle ORM + PGlite embedded PostgreSQL
-                   Extended schema: assets, iocs, threat_feeds
+  db/            — Drizzle ORM + embedded PostgreSQL
+                   Extended schema: iocs, network_assets, threat_feeds
   adapters/      — Adapter implementations (openclaw, http, siem, scanner, edr...)
   adapter-utils/ — Shared adapter primitives
-server/          — Express API server
-ui/              — React + Vite SOC dashboard
+server/          — Express 5 API server
+  services/
+    automation-dispatcher.ts  — Post-run incident/IOC pipeline
+    heartbeat.ts              — Scheduler + wakeup orchestration
+ui/              — React 19 + Vite SOC dashboard
 cli/             — sentinel CLI (onboard, doctor, run, heartbeat)
 ```
 
-### Schema Extensions
+### SOC-on-LOC vs. Paperclip
 
-Cyber-specific tables beyond the Paperclip base:
-- `assets` — Network asset / host inventory
-- `iocs` — Indicators of Compromise
-- `threat_feeds` — External intel source registry
-
-The `issues` table is extended with:
-`cvss_score`, `cve_id`, `mitre_tactic`, `mitre_technique`, `kill_chain_stage`,
-`affected_asset_ids`, `ioc_ids`, `source_alert_id`, `mttd_seconds`, `mttr_seconds`,
-`sla_deadline_at`, `evidence`, `containment_actions`
+| Paperclip Concept   | SOC-on-LOC Equivalent   | Notes                                                |
+| ------------------- | ----------------------- | ---------------------------------------------------- |
+| Company             | SOC / Defender Team     | One SOC per deployment or multi-SOC portfolio        |
+| Agent               | Defender                | Roles: CISO, Analyst, Threat Hunter, Red Teamer...   |
+| Issue / Ticket      | Incident / Finding      | Full incident lifecycle with CVSS severity           |
+| Heartbeat           | Watch Cycle             | Defenders wake, triage alerts, act, report           |
+| Goal                | Mission Objective       | Traced from SOC mission → team → defender → task     |
+| Project             | Operation / Campaign    | Grouped IR or hunt operations                        |
+| Approval            | Authorization Gate      | Deploy countermeasures, accept risk, hire defenders  |
+| Budget              | Token / Cost Envelope   | Per-defender monthly spend cap                       |
 
 ---
 
 ## Roadmap
 
-- [ ] SIEM webhook adapter (Elastic / Splunk / Sentinel ingest)
-- [ ] Threat feed poller (NVD / MISP / OTX / STIX-TAXII)
-- [ ] Network scanner adapter (nmap / nuclei)
-- [ ] EDR alert webhook adapter (CrowdStrike, SentinelOne)
+- [x] SIEM adapter (Splunk / Elastic / Sentinel / QRadar)
+- [x] Threat feed poller (NVD / MISP / OTX / STIX-TAXII)
+- [x] Network scanner adapter (nmap / nuclei)
+- [x] EDR alert adapter (CrowdStrike / SentinelOne / Defender)
+- [x] Autonomous incident pipeline (alert → issue → defender wakeup)
 - [ ] Automated countermeasure playbooks
 - [ ] MITRE ATT&CK Navigator integration
-- [ ] SOC metrics dashboard (MTTD, MTTR, SLA tracking)
+- [ ] SOC metrics dashboard (MTTD, MTTR, SLA burn)
 - [ ] Multi-SOC portfolio view
 - [ ] Export incident reports (STIX 2.1, PDF)
 
@@ -250,7 +264,7 @@ The `issues` table is extended with:
 
 ## Contributing
 
-We welcome contributions. See [AGENTS.md](AGENTS.md) for the development guide, domain vocabulary, and coding conventions.
+We welcome contributions. See [CLAUDE.md](CLAUDE.md) for the development guide, domain vocabulary, and coding conventions.
 
 ---
 
